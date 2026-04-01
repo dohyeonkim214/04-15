@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile Card</title>
+  <link rel="stylesheet" href="profile.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="card" aria-label="Profile business card">
+      <div class="card-left">
+        <p class="label">NAME</p>
+        <h1 class="name">홍길동</h1>
+
+        <p class="label">ROLE</p>
+        <p class="value">QA 경력</p>
+
+        <p class="label">PHONE</p>
+        <p class="value">416-999-9999</p>
+      </div>
+
+      <div class="card-right">
+        <p class="label">QR</p>
+        <div id="fakeQr" class="fake-qr" aria-label="Fake QR code"></div>
+        <p class="qr-caption">SCAN ME (FAKE)</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="profile.js"></script>
+</body>
+</html>
