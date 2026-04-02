@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>초간단 클릭 카운터</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f6f7fb;
+    }
+
+    .counter-wrap {
+      display: grid;
+      gap: 20px;
+      justify-items: center;
+      padding: 28px;
+      border: 2px solid #1f2937;
+      border-radius: 14px;
+      background: #ffffff;
+    }
+
+    .count {
+      font-size: clamp(72px, 16vw, 180px);
+      font-weight: 800;
+      line-height: 1;
+      color: #111827;
+      min-width: 2.5ch;
+      text-align: center;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      min-width: 84px;
+      padding: 10px 14px;
+      font-size: 30px;
+      font-weight: 700;
+      border: 2px solid #1f2937;
+      border-radius: 10px;
+      background: #e5e7eb;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+  </style>
+</head>
+<body>
+  <main class="counter-wrap">
+    <div id="count" class="count">0</div>
+    <div class="buttons">
+      <button type="button" id="decreaseBtn" aria-label="감소">-</button>
+      <button type="button" id="increaseBtn" aria-label="증가">+</button>
+    </div>
+  </main>
+
+  <script>
+    const countEl = document.getElementById("count");
+    const increaseBtn = document.getElementById("increaseBtn");
+    const decreaseBtn = document.getElementById("decreaseBtn");
+
+    let count = 0;
+
+    function render() {
+      countEl.textContent = count;
+    }
+
+    increaseBtn.addEventListener("click", function () {
+      count += 1;
+      render();
+    });
+
+    decreaseBtn.addEventListener("click", function () {
+      if (count > 0) {
+        count -= 1;
+      }
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
