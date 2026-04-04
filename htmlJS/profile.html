@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,24 +10,39 @@
   <main class="page">
     <section class="card" aria-label="Profile business card">
       <div class="card-left">
-        <p class="label">NAME</p>
-        <h1 class="name">홍길동</h1>
+        <div class="card-top">
+          <p id="eyebrowText" class="eyebrow">BUSINESS PROFILE</p>
+          <div class="locale-switch" aria-label="Language switcher">
+            <button type="button" class="locale-btn is-active" data-locale="en">EN</button>
+            <button type="button" class="locale-btn" data-locale="fr">FR</button>
+          </div>
+        </div>
 
-        <p class="label">ROLE</p>
-        <p class="value">QA 경력</p>
+        <div class="identity-block">
+          <p id="labelName" class="label">NAME</p>
+          <h1 id="profileName" class="name"></h1>
+        </div>
 
-        <p class="label">PHONE</p>
-        <p class="value">416-999-9999</p>
+        <div class="field">
+          <p id="labelRole" class="label">ROLE</p>
+          <p id="profileRole" class="value"></p>
+        </div>
+
+        <div class="field">
+          <p id="labelPhone" class="label">PHONE</p>
+          <p id="profilePhone" class="value"></p>
+        </div>
       </div>
 
       <div class="card-right">
-        <p class="label">QR</p>
-        <div id="fakeQr" class="fake-qr" aria-label="Fake QR code"></div>
-        <p class="qr-caption">SCAN ME (FAKE)</p>
+        <p id="labelQr" class="label">QR CODE</p>
+        <div id="contactQr" class="contact-qr" aria-label="Phone contact QR code"></div>
+        <p id="qrCaption" class="qr-caption">This QR code adds my phone number to your contacts.</p>
+        <p id="qrPhoneNote" class="qr-phone-note"></p>
       </div>
     </section>
   </main>
 
-  <script src="profile.js"></script>
+  <script type="module" src="profile.js"></script>
 </body>
 </html>
