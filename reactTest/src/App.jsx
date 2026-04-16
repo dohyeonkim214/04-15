@@ -1,13 +1,17 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import javascriptLogo from './assets/javascript.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import MovieCard from './MovieCard.jsx'
 import TestState from './test/testState.jsx'
+import NameInputFocus from './component/NameInputFocus.jsx'
 import { movieList } from './data/movieList.js'
 
 export default function App() {
   const [count, setCount] = useState(0)
+  const [selectedMovie, setSelectedMovie] = useState(null)
+  const movieInfoLabel = 'App에서 받은 영화 정보'
 
   return (
     <>
@@ -116,11 +120,36 @@ export default function App() {
             url={movie.url}
             description={movie.description}
             fallbackImage={movie.fallbackImage}
+            infoLabel={movieInfoLabel}
+            selectedMovie={selectedMovie}
+            onSelectMovie={setSelectedMovie}
           />
         ))}
       </section>
 
       <TestState />
+
+      <section className="todo-entry-section" aria-labelledby="todo-entry-title">
+        <div className="todo-entry-card">
+          <p className="todo-entry-eyebrow">Practice Project</p>
+          <h2 id="todo-entry-title">할 일 목록 페이지 보기</h2>
+          <p className="todo-entry-copy">
+            입력, 완료 체크, 삭제 버튼이 들어간 카드형 Todo List 예제를 별도 페이지로
+            만들었습니다.
+          </p>
+          <Link className="todo-entry-link" to="/todolist">
+            Todo List 페이지 열기
+          </Link>
+        </div>
+      </section>
+
+      <section className="name-focus-section" aria-labelledby="name-focus-section-title">
+        <div className="name-focus-section-head">
+          <p className="name-focus-section-kicker">New Component</p>
+          <h2 id="name-focus-section-title">useRef 입력창 자동 포커스 예제</h2>
+        </div>
+        <NameInputFocus />
+      </section>
     </>
   )
 }

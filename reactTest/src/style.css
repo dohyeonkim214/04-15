@@ -340,9 +340,134 @@ code {
   font-weight: 600;
 }
 
+.movie-card-button {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.movie-card-button:hover {
+  filter: brightness(0.98);
+}
+
+.movie-card-selected-info {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--text-h);
+}
+
 .movie-card-description {
   margin: 10px 0 0;
   font-size: 14px;
   line-height: 1.45;
   color: var(--text);
+}
+
+.todo-entry-section {
+  padding: 24px 20px 96px;
+  display: flex;
+  justify-content: center;
+}
+
+.todo-entry-card {
+  width: min(720px, 100%);
+  padding: 28px;
+  border-radius: 28px;
+  border: 1px solid rgba(18, 18, 18, 0.08);
+  background:
+    radial-gradient(circle at top left, rgba(255, 163, 127, 0.26), transparent 32%),
+    linear-gradient(135deg, #fffaf3 0%, #ffffff 52%, #f4fbf8 100%);
+  box-shadow: 0 24px 60px rgba(28, 33, 52, 0.12);
+  text-align: left;
+}
+
+.todo-entry-eyebrow {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b45309;
+  font-weight: 700;
+}
+
+.todo-entry-copy {
+  margin-top: 10px;
+  max-width: 48ch;
+}
+
+.todo-entry-link {
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #111827;
+  color: #fffdf8;
+  text-decoration: none;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.todo-entry-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(17, 24, 39, 0.18);
+}
+
+.todo-entry-link:focus-visible {
+  outline: 3px solid rgba(17, 24, 39, 0.24);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .todo-entry-section {
+    padding-bottom: 72px;
+  }
+
+  .todo-entry-card {
+    padding: 22px;
+    border-radius: 22px;
+  }
+}
+
+.name-focus-section {
+  border-top: 1px solid var(--border);
+  padding: 32px 0 0;
+}
+
+.name-focus-section-head {
+  width: min(720px, calc(100% - 40px));
+  margin: 0 auto 14px;
+  text-align: left;
+}
+
+.name-focus-section-kicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b45309;
+}
+
+.name-focus-section-head h2 {
+  margin: 8px 0 0;
+  font-size: 26px;
+}
+
+@media (max-width: 640px) {
+  .name-focus-section {
+    padding-top: 24px;
+  }
+
+  .name-focus-section-head h2 {
+    font-size: 22px;
+  }
 }
