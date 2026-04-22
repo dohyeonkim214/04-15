@@ -1,4 +1,4 @@
-import { useId, useState, useEffect } from 'react'
+import { useId, useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './todolist.css'
 
@@ -21,6 +21,7 @@ function TrashIcon() {
 
 export default function TodoListPage() {
   const inputId = useId()
+  const inputRef = useRef(null)
   const [inputValue, setInputValue] = useState('')
   const [todos, setTodos] = useState(() => {
     try {
@@ -54,6 +55,9 @@ export default function TodoListPage() {
       ...currentTodos,
     ])
     setInputValue('')
+    
+    // useRef를 이용한 자동 포커스
+    inputRef.current?.focus()
   }
 
   const handleToggleTodo = (todoId) => {
@@ -100,6 +104,7 @@ export default function TodoListPage() {
             </label>
             <div className="todo-input-row">
               <input
+                ref={inputRef}
                 id={inputId}
                 className="todo-input"
                 type="text"
