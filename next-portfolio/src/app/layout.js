@@ -35,6 +35,9 @@ export default function RootLayout({ children }) {
             <Link className="text-sm font-medium transition-opacity hover:opacity-80" href="/about">
               About
             </Link>
+             <Link className="text-sm font-medium transition-opacity hover:opacity-80" href="/shadcntest">
+              shadcnTest
+            </Link>
           </nav>
         </header>
         <div className="flex-1">{children}</div>
