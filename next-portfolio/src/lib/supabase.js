@@ -6,14 +6,29 @@ const normalizedSupabaseUrl = supabaseUrl?.replace(/\/rest\/v1\/?$/, "");
 
 let cachedClient = null;
 
-export function getSupabaseClient() {
-  if (cachedClient) return cachedClient;
+function createSupabaseClient() {
+  return createClient(normalizedSupabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: typeof window !== "undefined",
+      autoRefreshToken: typeof window !== "undefined",
+      detectSessionInUrl: typeof window !== "undefined",
+    },
+  });
+}
 
+export function getSupabaseClient() {
   if (!normalizedSupabaseUrl || !supabaseAnonKey) {
     throw new Error("Supabase client is not configured");
   }
 
-  cachedClient = createClient(normalizedSupabaseUrl, supabaseAnonKey);
+  // On the server, never share auth state across requests.
+  if (typeof window === "undefined") {
+    return createSupabaseClient();
+  }
+
+  if (cachedClient) return cachedClient;
+
+  cachedClient = createSupabaseClient();
   return cachedClient;
 }
 

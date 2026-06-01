@@ -92,16 +92,27 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchLatestProfile() {
       try {
-        const client = supabase ?? getSupabaseClient()
-        const { data, error } = await client
-          .from("profiles")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle()
-        // 리뷰: 현재 select는 내림차순 _ limit으로 1건 조회하는 코드임. 하지만 명확한 필터가 없어서, 특정한 필터를 두는 게 맞음. eq 같은 것. 인공지능은 maybeSingle 검토를 요청함.
-        // 0517: Gemini 왈: client가 새로 생성될 위험? .single 문제점(유저의 데이터가 한건도 없다면...)
-        if (error) throw error
+        const email = authUser?.email ?? ""
+
+        if (!email) {
+          form.reset({
+            ...emptyProfileValues,
+            email: "",
+            username: "",
+            bio: "",
+          })
+          setProfileId(null)
+          return
+        }
+
+        const response = await fetch(`/api/profiles?email=${encodeURIComponent(email)}`)
+        const result = await response.json()
+
+        if (!response.ok) {
+          throw new Error(result?.error || "프로필 조회에 실패했습니다")
+        }
+
+        const data = result?.data ?? null
 
         if (data) {
           form.reset({
@@ -114,7 +125,7 @@ export default function ProfilePage() {
 
         form.reset({
           ...emptyProfileValues,
-          email: authUser?.email ?? "",
+          email,
           username: "",
           bio: "",
         })
@@ -132,16 +143,22 @@ export default function ProfilePage() {
 
   async function onSubmit(values) {
     try {
-      const client = supabase ?? getSupabaseClient()
       const payload = profileId ? { id: profileId, ...values } : values
-      const { data, error } = await client
-        .from("profiles")
-        .upsert([payload], { onConflict: "id" })
-        .select("id")
-        .single()
-      //리뷰: 역시 같은 논리로, 여기서는 id가 있으면 update, 미존재시 insert로 동작하는 코드임. 하지만 중복생성 가능성을 고려해서 profileid 누락을 막아야 함. 1인 1프로필 정책인가?
+      const response = await fetch("/api/profiles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
 
-      if (error) throw error
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result?.error || "프로필 저장에 실패했습니다")
+      }
+
+      const data = result?.data
 
       if (data?.id) setProfileId(data.id)
 
@@ -161,13 +178,25 @@ export default function ProfilePage() {
     if (!confirmed || !profileId) return
 
     try {
-      const client = supabase ?? getSupabaseClient()
-      const { error } = await client.from("profiles").delete().eq("id", profileId)
+      const response = await fetch("/api/profiles", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: profileId }),
+      })
 
-      if (error) throw error
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result?.error || "프로필 삭제에 실패했습니다")
+      }
 
       toast.success("프로필이 삭제되었습니다")
-      form.reset(emptyProfileValues)
+      form.reset({
+        ...emptyProfileValues,
+        email: authUser?.email ?? "",
+      })
       setProfileId(null)
     } catch (error) {
       console.error(error)
@@ -176,7 +205,6 @@ export default function ProfilePage() {
       })
     }
   }
-  //리뷰: 인공지능 코멘트: 빈 데이터 상황에서 single 사용(maybeSingle?), 첫 진입 실패 가능? 사용자 범위 누락. 사용자 식별 필터...
 
   if (isLoading) {
     return (
