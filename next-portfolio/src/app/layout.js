@@ -119,7 +119,7 @@ export default function RootLayout({ children }) {
                   <>
                     <Link
                       className="rounded-md border border-border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted"
-                      href="/profiles"
+                      href="/profile"
                     >
                       프로필 폼
                     </Link>

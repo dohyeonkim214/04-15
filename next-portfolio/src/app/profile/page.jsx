@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -30,6 +30,7 @@ import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import AvatarUpload from "@/components/AvatarUpload"
 import { getSupabaseClient, supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
@@ -37,6 +38,7 @@ const roleOptions = ["developer", "designer", "manager"]
 const emptyProfileValues = {
   username: "",
   email: "",
+  avatar_url: "",
   bio: "",
   role: "",
   marketing_emails: false,
@@ -49,6 +51,7 @@ const profileSchema = z.object({
     .min(2, { message: "닉네임은 2~20자 사이여야 합니다." })
     .max(20, { message: "닉네임은 2~20자 사이여야 합니다." }),
   email: z.string().email({ message: "유효한 이메일 주소를 입력해주세요." }),
+  avatar_url: z.string().optional(),
   bio: z
     .string()
     .max(160, { message: "자기소개는 160자를 초과할 수 없습니다." })
@@ -61,17 +64,73 @@ const profileSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
 })
 
+function getAvatarPathFromUrl(url) {
+  if (!url) return null
+
+  try {
+    const parsed = new URL(url)
+    const marker = "/storage/v1/object/public/avatars/"
+    const index = parsed.pathname.indexOf(marker)
+
+    if (index !== -1) {
+      return decodeURIComponent(parsed.pathname.slice(index + marker.length))
+    }
+  } catch {
+    // Ignore URL parse errors and fall through.
+  }
+
+  if (typeof url === "string" && url.startsWith("avatars/")) {
+    return url.slice("avatars/".length)
+  }
+
+  return typeof url === "string" ? url : null
+}
+
+async function removeAvatarByPath(path) {
+  if (!path) return
+
+  try {
+    const client = supabase ?? getSupabaseClient()
+    await client.storage.from("avatars").remove([path])
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const [authUser, setAuthUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [profileId, setProfileId] = useState(null)
+  const pendingAvatarPathRef = useRef(null)
+  const savedAvatarPathRef = useRef(null)
 
   const form = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues: emptyProfileValues,
   })
   const { isSubmitting } = form.formState
+  const avatarUrl = form.watch("avatar_url")
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!pendingAvatarPathRef.current) return
+
+      void removeAvatarByPath(pendingAvatarPathRef.current)
+      pendingAvatarPathRef.current = null
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+
+      if (!pendingAvatarPathRef.current) return
+
+      void removeAvatarByPath(pendingAvatarPathRef.current)
+      pendingAvatarPathRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     async function fetchAuthUser() {
@@ -108,8 +167,10 @@ export default function ProfilePage() {
             ...emptyProfileValues,
             email: "",
             username: "",
+            avatar_url: "",
             bio: "",
           })
+          savedAvatarPathRef.current = null
           setProfileId(null)
           return
         }
@@ -128,6 +189,7 @@ export default function ProfilePage() {
             ...emptyProfileValues,
             ...data,
           })
+          savedAvatarPathRef.current = getAvatarPathFromUrl(data.avatar_url)
           setProfileId(data.id)
           return
         }
@@ -136,8 +198,10 @@ export default function ProfilePage() {
           ...emptyProfileValues,
           email,
           username: "",
+          avatar_url: "",
           bio: "",
         })
+        savedAvatarPathRef.current = null
         setProfileId(null)
       } catch (error) {
         console.error(error)
@@ -149,6 +213,15 @@ export default function ProfilePage() {
 
     fetchLatestProfile()
   }, [authUser, form])
+
+  async function handleAvatarUpload(nextUrl, nextPath) {
+    if (pendingAvatarPathRef.current && pendingAvatarPathRef.current !== nextPath) {
+      await removeAvatarByPath(pendingAvatarPathRef.current)
+    }
+
+    pendingAvatarPathRef.current = nextPath ?? null
+    form.setValue("avatar_url", nextUrl, { shouldDirty: true })
+  }
 
   async function onSubmit(values) {
     try {
@@ -171,6 +244,22 @@ export default function ProfilePage() {
 
       if (data?.id) setProfileId(data.id)
 
+      const savedAvatarPath = getAvatarPathFromUrl(values.avatar_url)
+      const previousSavedAvatarPath = savedAvatarPathRef.current
+
+      if (
+        previousSavedAvatarPath &&
+        savedAvatarPath !== previousSavedAvatarPath
+      ) {
+        await removeAvatarByPath(previousSavedAvatarPath)
+      }
+
+      savedAvatarPathRef.current = savedAvatarPath
+
+      if (pendingAvatarPathRef.current === savedAvatarPath) {
+        pendingAvatarPathRef.current = null
+      }
+
       toast.success("프로필 저장 완료!", {
         description: `이메일: ${values.email} / 직업: ${values.role}`,
       })
@@ -183,7 +272,7 @@ export default function ProfilePage() {
   }
 
   async function handleDelete() {
-    const confirmed = window.confirm("정말 프로필을 삭제하시겠습니까?")
+    const confirmed = window.confirm("정말 프로필을 초기화하시겠습니까?")
     if (!confirmed || !profileId) return
 
     try {
@@ -192,7 +281,10 @@ export default function ProfilePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: profileId }),
+        body: JSON.stringify({
+          id: profileId,
+          avatar_url: form.getValues("avatar_url"),
+        }),
       })
 
       const result = await response.json()
@@ -206,6 +298,8 @@ export default function ProfilePage() {
         ...emptyProfileValues,
         email: authUser?.email ?? "",
       })
+      pendingAvatarPathRef.current = null
+      savedAvatarPathRef.current = null
       setProfileId(null)
     } catch (error) {
       console.error(error)
@@ -234,6 +328,14 @@ export default function ProfilePage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <div className="flex justify-center">
+                <AvatarUpload
+                  url={avatarUrl}
+                  size={112}
+                  onUpload={handleAvatarUpload}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name="username"
@@ -366,7 +468,7 @@ export default function ProfilePage() {
 
                 {profileId && (
                   <Button type="button" variant="destructive" onClick={handleDelete}>
-                    프로필 삭제
+                    프로필 초기화
                   </Button>
                 )}
               </div>
