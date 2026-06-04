@@ -126,23 +126,6 @@ export default function LoginPage() {
         return;
       }
 
-      const session = result?.session;
-      const accessToken = session?.access_token;
-      const refreshToken = session?.refresh_token;
-
-      if (accessToken && refreshToken) {
-        const client = supabase ?? getSupabaseClient();
-        const { error: sessionError } = await client.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (sessionError) {
-          setError(sessionError.message || "세션 설정에 실패했습니다.");
-          return;
-        }
-      }
-
       setMessage(result?.message || "로그인 성공!");
       router.replace("/profile");
       router.refresh();

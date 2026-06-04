@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
@@ -61,6 +62,7 @@ const profileSchema = z.object({
 })
 
 export default function ProfilePage() {
+  const router = useRouter()
   const [authUser, setAuthUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [profileId, setProfileId] = useState(null)
@@ -77,17 +79,24 @@ export default function ProfilePage() {
         const client = supabase ?? getSupabaseClient()
         const { data, error } = await client.auth.getUser()
 
-        if (error) throw error
+        if (error || !data.user) {
+          setAuthUser(null)
+          setIsLoading(false)
+          router.replace("/login")
+          return
+        }
 
         setAuthUser(data.user ?? null)
       } catch (error) {
         console.error(error)
         setAuthUser(null)
+        setIsLoading(false)
+        router.replace("/login")
       }
     }
 
     fetchAuthUser()
-  }, [])
+  }, [router])
 
   useEffect(() => {
     async function fetchLatestProfile() {

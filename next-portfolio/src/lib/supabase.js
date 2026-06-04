@@ -1,3 +1,4 @@
+import { createBrowserClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
@@ -6,12 +7,16 @@ const normalizedSupabaseUrl = supabaseUrl?.replace(/\/rest\/v1\/?$/, "");
 
 let cachedClient = null;
 
-function createSupabaseClient() {
+function createBrowserSupabaseClient() {
+  return createBrowserClient(normalizedSupabaseUrl, supabaseAnonKey);
+}
+
+function createServerSupabaseClient() {
   return createClient(normalizedSupabaseUrl, supabaseAnonKey, {
     auth: {
-      persistSession: typeof window !== "undefined",
-      autoRefreshToken: typeof window !== "undefined",
-      detectSessionInUrl: typeof window !== "undefined",
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
   });
 }
@@ -23,12 +28,12 @@ export function getSupabaseClient() {
 
   // On the server, never share auth state across requests.
   if (typeof window === "undefined") {
-    return createSupabaseClient();
+    return createServerSupabaseClient();
   }
 
   if (cachedClient) return cachedClient;
 
-  cachedClient = createSupabaseClient();
+  cachedClient = createBrowserSupabaseClient();
   return cachedClient;
 }
 

@@ -57,11 +57,23 @@ export default function RootLayout({ children }) {
   }, []);
 
   const handleLogout = async () => {
-    if (!supabase) {
-      router.replace("/login");
-      return;
+    try {
+      await fetch("/api/auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } catch {
+      // Ignore network errors and continue client-side cleanup.
     }
-    await supabase.auth.signOut();
+
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+
+    setUser(null);
     router.replace("/login");
     router.refresh();
   };

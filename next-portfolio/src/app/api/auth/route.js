@@ -1,5 +1,39 @@
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getSupabaseClient } from "@/lib/supabase";
+
+function getSupabaseConfig() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  const normalizedSupabaseUrl = supabaseUrl?.replace(/\/rest\/v1\/?$/, "");
+
+  if (!normalizedSupabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase client is not configured");
+  }
+
+  return {
+    url: normalizedSupabaseUrl,
+    key: supabaseAnonKey,
+  };
+}
+
+async function getRouteHandlerSupabaseClient() {
+  const cookieStore = await cookies();
+  const { url, key } = getSupabaseConfig();
+
+  return createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          cookieStore.set(name, value, options);
+        });
+      },
+    },
+  });
+}
 
 function normalizeCredentials(body) {
   const action = String(body?.action ?? "").trim();
@@ -29,7 +63,7 @@ export async function POST(request) {
       );
     }
 
-    const client = getSupabaseClient();
+    const client = await getRouteHandlerSupabaseClient();
 
     if (action === "signup") {
       const { data, error } = await client.auth.signUp({
@@ -64,7 +98,6 @@ export async function POST(request) {
         {
           message: "로그인 성공!",
           user: data.user ?? null,
-          session: data.session ?? null,
         },
         { status: 200 },
       );
@@ -91,8 +124,23 @@ export async function POST(request) {
       );
     }
 
+    if (action === "logout") {
+      const { error } = await client.auth.signOut();
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+
+      return NextResponse.json(
+        {
+          message: "로그아웃 완료",
+        },
+        { status: 200 },
+      );
+    }
+
     return NextResponse.json(
-      { error: "지원하지 않는 action입니다. (login | signup | forgot)" },
+      { error: "지원하지 않는 action입니다. (login | signup | forgot | logout)" },
       { status: 400 },
     );
   } catch (error) {
